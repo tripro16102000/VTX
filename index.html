@@ -236,6 +236,24 @@
             gap: 18px
         }
 
+        .zoom-tools {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-wrap: wrap;
+            margin: 0 0 12px
+        }
+
+        .zoom-tools button {
+            min-width: 40px
+        }
+
+        .zoom-tools .zoom-value {
+            font-weight: 700;
+            min-width: 54px;
+            text-align: center
+        }
+
         .yard-viewport {
             width: 100%;
             height: min(68vh, 680px);
@@ -582,18 +600,37 @@
         function lotTable(arr) { return `<table><thead><tr><th>Ảnh</th><th>Cont đầu vào</th><th>Loại hàng</th><th>Khách hàng</th><th>Vị trí lưu</th><th>Số kiện nhập</th><th>Kg/kiện</th><th>Tồn (kiện / kg)</th><th>Ngày vào</th><th>Thao tác</th></tr></thead><tbody>${arr.map(l => `<tr><td>${l.image_url ? `<img class="thumb" src="${esc(l.image_url)}">` : '📦'}</td><td><b>${esc(l.source_cont)}</b></td><td>${esc(l.product)}</td><td>${esc(l.customer)}</td><td><span class="tag">${esc(slotName(l.slot_id))}</span></td><td>${num(l.packages)}</td><td>${num(kgPerPackage(l))} kg</td><td><b>${num(lotPackages(l.id))} kiện / ${num(lotKg(l.id))} kg</b></td><td>${esc(l.entry_date)}</td><td><div class="row-actions"><button onclick="editLot('${l.id}')">✎ Sửa</button><button class="delete" onclick="deleteLot('${l.id}')">🗑 Xóa</button></div></td></tr>`).join('') || '<tr><td colspan="10" class="empty">Chưa có hàng hóa</td></tr>'}</tbody></table>` }
         function stock() { return `<div class="panel"><div class="toolbar"><input id="search" placeholder="Tìm cont, hàng, khách hàng..." oninput="filterStock()" style="min-width:260px"><span class="muted">Tồn kho tính từ lịch sử nhập/xuất</span></div><div id="stockTable">${lotTable(db.lots)}</div></div><div class="panel"><h2>Lịch sử nhập xuất</h2><table><tr><th>Ngày</th><th>Loại</th><th>Hàng hóa</th><th>Số kiện</th><th>Khối lượng (kg)</th><th>Cont lưu kho</th></tr>${db.moves.slice().reverse().map(m => `<tr><td>${esc(m.date)}</td><td>${moveLabel(m.kind)}</td><td>${esc(db.lots.find(l => l.id === m.lot_id)?.product || '—')}</td><td>${num(m.packages ?? (Number(m.qty) * Number(db.lots.find(l => l.id === m.lot_id)?.packages || 0) / Number(db.lots.find(l => l.id === m.lot_id)?.quantity || 1)))}</td><td>${num(m.packages != null ? Number(m.packages) * kgPerPackage(db.lots.find(l => l.id === m.lot_id)) : m.qty)}</td><td>${esc(moveSlotName(m))}</td></tr>`).join('')}</table></div>` }
         function filterStock() { let q = get('search').value.toLowerCase(); get('stockTable').innerHTML = lotTable(db.lots.filter(l => [l.source_cont, l.product, l.customer, slotName(l.slot_id)].some(v => String(v).toLowerCase().includes(q)))) }
-        function yard() { let y = db.yards[0]; if (!y) return '<div class="panel empty">Chưa có bãi. Nhấn “Thêm bãi” để bắt đầu.</div>'; return `<div class="management" id="yardManage"></div><div class="toolbar"><select id="yardSelect" onchange="selectedSlot=null;drawYard(this.value)">${db.yards.map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select><span class="muted">Kéo thả container để thay đổi vị trí. Bấm container để xem hàng hoặc đánh dấu cho thuê. Xám = trống; xanh = có hàng (hiện loại hàng, kiện, kg); màu tùy chọn = cho thuê.</span></div><div class="layout"><div class="panel"><h2>Mặt bằng bãi</h2><div class="management"><span class="muted">Cuộn ngang / dọc để xem toàn bộ cont · Giữ và kéo để di chuyển</span></div><div class="yard-viewport" id="yardViewport"><div class="yard" id="yardCanvas"></div></div></div><div class="panel" id="slotInfo"><h2>Chi tiết container</h2><p class="muted">Chọn một container trên sơ đồ.</p></div></div>` }
+        function yard() { let y = db.yards[0]; if (!y) return '<div class="panel empty">Chưa có bãi. Nhấn “Thêm bãi” để bắt đầu.</div>'; return `<div class="management" id="yardManage"></div><div class="toolbar"><select id="yardSelect" onchange="selectedSlot=null;drawYard(this.value)">${db.yards.map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select><span class="muted">Kéo thả container để thay đổi vị trí. Bấm container để xem hàng hoặc đánh dấu cho thuê. Xám = trống; xanh = có hàng (hiện loại hàng, kiện, kg); màu tùy chọn = cho thuê.</span></div><div class="layout"><div class="panel"><h2>Mặt bằng bãi</h2><div class="management"><span class="muted">Cuộn ngang / dọc để xem toàn bộ cont · Giữ và kéo để di chuyển</span></div><div class="zoom-tools"><button class="secondary" type="button" onclick="changeYardZoom(-0.1)" title="Thu nhỏ">−</button><span class="zoom-value" id="yardZoomValue">100%</span><button class="secondary" type="button" onclick="changeYardZoom(0.1)" title="Phóng to">+</button><button class="secondary" type="button" onclick="setYardZoom(1)" title="Trở về 100%">Đặt lại 100%</button><span class="muted">Ctrl + lăn chuột để zoom · Cuộn để xem toàn bộ bãi</span></div><div class="yard-viewport" id="yardViewport" onwheel="yardWheelZoom(event)"><div class="yard" id="yardCanvas"></div></div></div><div class="panel" id="slotInfo"><h2>Chi tiết container</h2><p class="muted">Chọn một container trên sơ đồ.</p></div></div>` }
         function safeRentalColor(c) { return /^#[0-9a-fA-F]{6}$/.test(c || '') ? c : '#fbbf24' }
         function slotInventory(id) { return slotLots(id).map(l => ({ lot: l, packages: lotPackages(l.id), kg: lotKg(l.id) })).filter(x => x.packages > 0) }
         function slotSummary(id) { let items = slotInventory(id); return { items, packages: items.reduce((n, x) => n + x.packages, 0), kg: items.reduce((n, x) => n + x.kg, 0) } }
+        let yardZoom = 1;
+        function setYardZoom(next, clientX, clientY) {
+            const viewport = get('yardViewport'), canvas = get('yardCanvas');
+            yardZoom = Math.min(2, Math.max(0.4, Math.round(next * 10) / 10));
+            if (!viewport || !canvas) return;
+            const previous = Number(canvas.style.zoom) || 1;
+            const rect = viewport.getBoundingClientRect();
+            const px = clientX === undefined ? viewport.clientWidth / 2 : clientX - rect.left;
+            const py = clientY === undefined ? viewport.clientHeight / 2 : clientY - rect.top;
+            const worldX = (viewport.scrollLeft + px) / previous;
+            const worldY = (viewport.scrollTop + py) / previous;
+            canvas.style.zoom = String(yardZoom);
+            const label = get('yardZoomValue'); if (label) label.textContent = Math.round(yardZoom * 100) + '%';
+            viewport.scrollLeft = Math.max(0, worldX * yardZoom - px);
+            viewport.scrollTop = Math.max(0, worldY * yardZoom - py);
+        }
+        function changeYardZoom(delta) { setYardZoom(yardZoom + delta) }
+        function yardWheelZoom(event) { if (!event.ctrlKey) return; event.preventDefault(); setYardZoom(yardZoom + (event.deltaY < 0 ? 0.1 : -0.1), event.clientX, event.clientY) }
         function drawYard(id) {
             let canvas = get('yardCanvas'); if (!canvas) return;
             let actions = get('yardManage'); if (actions) actions.innerHTML = `<button class="secondary" onclick="editYard('${id}')">✎ Sửa tên bãi</button><button class="secondary danger" onclick="deleteYard('${id}')">🗑 Xóa bãi</button>`;
             let slots = db.slots.filter(s => s.yard_id === id), viewport = get('yardViewport');
+            canvas.style.zoom = String(yardZoom); const zoomLabel = get('yardZoomValue'); if (zoomLabel) zoomLabel.textContent = Math.round(yardZoom * 100) + '%';
             // The map grows to fit every saved position. The viewport scrolls independently.
             let maxX = Math.max(0, ...slots.map(s => (Number(s.x) || 0) + 245)), maxY = Math.max(0, ...slots.map(s => (Number(s.y) || 0) + Math.max(160, 135 + slotInventory(s.id).length * 52)));
-            canvas.style.width = Math.max(viewport?.clientWidth || 600, maxX + 100) + 'px';
-            canvas.style.height = Math.max(viewport?.clientHeight || 420, maxY + 100) + 'px';
+            canvas.style.width = Math.max((viewport?.clientWidth || 600) / yardZoom, maxX + 100) + 'px';
+            canvas.style.height = Math.max((viewport?.clientHeight || 420) / yardZoom, maxY + 100) + 'px';
             canvas.innerHTML = slots.map(s => {
                 let inventory = slotSummary(s.id), rented = !!s.rental_customer, occupied = !rented && inventory.items.length > 0;
                 let lines = inventory.items.map(({ lot, packages, kg }) => `<div class="goods-line"><b>${esc(lot.product)}</b><div>${num(packages)} kiện · ${num(kg)} kg</div></div>`).join('');
@@ -610,7 +647,7 @@
                     let startX = e.clientX, startY = e.clientY, oldX = Number(slot.x) || 0, oldY = Number(slot.y) || 0, moved = false;
                     el.setPointerCapture(e.pointerId);
                     el.onpointermove = ev => {
-                        let dx = ev.clientX - startX, dy = ev.clientY - startY;
+                        let dx = (ev.clientX - startX) / yardZoom, dy = (ev.clientY - startY) / yardZoom;
                         if (Math.abs(dx) + Math.abs(dy) > 5) moved = true;
                         if (!moved) return;
                         slot.x = Math.max(0, Math.round(oldX + dx)); slot.y = Math.max(0, Math.round(oldY + dy));
