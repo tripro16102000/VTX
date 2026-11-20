@@ -1,0 +1,582 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>VTX Kho Container</title>
+    <style>
+        :root {
+            font-family: Inter, system-ui, Arial, sans-serif;
+            color: #17263d;
+            background: #f3f6fb
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0
+        }
+
+        button,
+        input,
+        select {
+            font: inherit
+        }
+
+        button {
+            cursor: pointer
+        }
+
+        .app {
+            display: flex;
+            min-height: 100vh
+        }
+
+        .side {
+            width: 235px;
+            background: #11243e;
+            color: #e9f2ff;
+            padding: 24px 15px;
+            flex-shrink: 0
+        }
+
+        .brand {
+            font-weight: 800;
+            font-size: 21px;
+            padding: 5px 12px 27px
+        }
+
+        .brand span {
+            color: #5bc3ff
+        }
+
+        .nav {
+            display: block;
+            width: 100%;
+            padding: 13px;
+            text-align: left;
+            color: #c7d6e9;
+            border: 0;
+            border-radius: 10px;
+            background: transparent;
+            margin: 3px 0
+        }
+
+        .nav.active,
+        .nav:hover {
+            background: #274566;
+            color: white
+        }
+
+        .main {
+            flex: 1;
+            min-width: 0;
+            padding: 30px;
+            max-width: 1500px
+        }
+
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 23px
+        }
+
+        h1 {
+            font-size: 26px;
+            margin: 0
+        }
+
+        h2 {
+            font-size: 18px;
+            margin: 0 0 18px
+        }
+
+        .muted {
+            color: #728198;
+            font-size: 13px
+        }
+
+        .primary {
+            background: #2265db;
+            color: white;
+            border: 0;
+            border-radius: 9px;
+            padding: 11px 16px;
+            font-weight: 650
+        }
+
+        .secondary {
+            background: #eaf0f8;
+            color: #23446c;
+            border: 0;
+            border-radius: 8px;
+            padding: 9px 12px
+        }
+
+        .danger {
+            color: #bf354b
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 20px
+        }
+
+        .card,
+        .panel {
+            background: white;
+            border: 1px solid #e4eaf2;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 3px 16px #19365a07
+        }
+
+        .card b {
+            font-size: 27px;
+            display: block;
+            margin-top: 12px
+        }
+
+        .panel {
+            margin-bottom: 18px;
+            overflow: auto
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 16px
+        }
+
+        input,
+        select {
+            border: 1px solid #d8e0ec;
+            border-radius: 8px;
+            padding: 10px;
+            background: white;
+            min-width: 0
+        }
+
+        input[type=file] {
+            width: 100%
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px
+        }
+
+        th {
+            text-align: left;
+            color: #73839b;
+            font-size: 12px;
+            font-weight: 650;
+            background: #f8fafd
+        }
+
+        th,
+        td {
+            padding: 13px 11px;
+            border-bottom: 1px solid #edf1f6;
+            white-space: nowrap
+        }
+
+        td button {
+            border: 0;
+            background: transparent;
+            color: #2368d5
+        }
+
+        .tag {
+            display: inline-block;
+            background: #e7f2ff;
+            color: #2360b7;
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 12px
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 18px
+        }
+
+        .yard {
+            background: #edf3f9;
+            border: 2px dashed #c5d2e4;
+            border-radius: 14px;
+            min-height: 420px;
+            position: relative;
+            overflow: hidden;
+            background-image: linear-gradient(#dce5f0 1px, transparent 1px), linear-gradient(90deg, #dce5f0 1px, transparent 1px);
+            background-size: 32px 32px
+        }
+
+        .slot {
+            position: absolute;
+            width: 155px;
+            min-height: 94px;
+            border-radius: 9px;
+            border: 2px solid #4177a8;
+            background: #d9edfa;
+            box-shadow: 0 4px 10px #3456781a;
+            padding: 12px;
+            cursor: grab;
+            touch-action: none;
+            user-select: none
+        }
+
+        .slot b {
+            display: block
+        }
+
+        .slot small {
+            display: block;
+            margin-top: 8px;
+            color: #42637f
+        }
+
+        .slot.selected {
+            outline: 3px solid #f6a63d
+        }
+
+        .formgrid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px
+        }
+
+        .field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 650;
+            color: #65768d;
+            margin-bottom: 5px
+        }
+
+        .field input,
+        .field select {
+            width: 100%
+        }
+
+        .modalback {
+            position: fixed;
+            inset: 0;
+            background: #07172c9c;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            z-index: 10
+        }
+
+        .modal {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            width: min(700px, 100%);
+            max-height: 90vh;
+            overflow: auto
+        }
+
+        .modalhead {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px
+        }
+
+        .hidden {
+            display: none !important
+        }
+
+        .empty {
+            color: #8290a3;
+            text-align: center;
+            padding: 25px
+        }
+
+        .login {
+            max-width: 420px;
+            margin: 12vh auto;
+            background: white;
+            border-radius: 18px;
+            padding: 32px;
+            box-shadow: 0 12px 40px #18345c20
+        }
+
+        .login input {
+            width: 100%;
+            margin: 8px 0
+        }
+
+        .login button {
+            width: 100%;
+            margin-top: 12px
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #7a8799;
+            line-height: 1.6
+        }
+
+        .toast {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            background: #193c64;
+            color: white;
+            padding: 14px 20px;
+            border-radius: 10px;
+            z-index: 30
+        }
+
+        .thumb {
+            width: 44px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 5px
+        }
+
+        .two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px
+        }
+
+        @media(max-width:950px) {
+            .cards {
+                grid-template-columns: repeat(2, 1fr)
+            }
+
+            .layout {
+                grid-template-columns: 1fr
+            }
+
+            .side {
+                width: 75px;
+                padding: 18px 7px
+            }
+
+            .brand {
+                font-size: 13px;
+                padding: 5px
+            }
+
+            .nav {
+                font-size: 0;
+                text-align: center
+            }
+
+            .nav::first-letter {
+                font-size: 22px
+            }
+        }
+
+        @media(max-width:620px) {
+            .app {
+                display: block
+            }
+
+            .side {
+                width: 100%;
+                display: flex;
+                overflow-x: auto;
+                padding: 8px
+            }
+
+            .brand {
+                white-space: nowrap;
+                padding: 13px
+            }
+
+            .nav {
+                font-size: 12px;
+                white-space: nowrap;
+                width: auto
+            }
+
+            .main {
+                padding: 16px
+            }
+
+            .cards {
+                gap: 8px
+            }
+
+            .card {
+                padding: 13px
+            }
+
+            .card b {
+                font-size: 20px
+            }
+
+            .top {
+                align-items: flex-start
+            }
+
+            .formgrid {
+                grid-template-columns: 1fr
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="auth" class="login hidden">
+        <h1>📦 VTX Warehouse</h1>
+        <p class="muted">Đăng nhập để quản lý kho trực tuyến</p><input id="email" type="email"
+            placeholder="Email"><input id="password" type="password" placeholder="Mật khẩu"><button class="primary"
+            onclick="signIn()">Đăng nhập</button><button class="secondary" onclick="signUp()">Đăng ký tài khoản</button>
+        <p class="hint">Tạo tài khoản chỉ dành cho nhân viên được cấp quyền truy cập dữ liệu.</p>
+    </div>
+    <div id="app" class="app">
+        <aside class="side">
+            <div class="brand">📦 <span>VTX</span> Kho</div><button class="nav active" data-tab="dashboard">◫ Tổng
+                quan</button><button class="nav" data-tab="stock">▤ Hàng hóa</button><button class="nav"
+                data-tab="yard">▦ Sơ đồ cont</button><button class="nav" data-tab="cost">₫ Công nợ</button><button
+                class="nav" data-tab="report">▥ Báo cáo tháng</button><button class="nav" onclick="logout()">↪ Đăng
+                xuất</button>
+        </aside>
+        <main class="main">
+            <div class="top">
+                <div>
+                    <h1 id="heading">Tổng quan kho</h1>
+                    <div class="muted">Quản lý bãi và hàng hóa tập trung</div>
+                </div>
+                <div id="actions"></div>
+            </div>
+            <div id="content"></div>
+        </main>
+    </div>
+    <div id="modal" class="modalback hidden">
+        <div class="modal">
+            <div class="modalhead">
+                <h2 id="modalTitle"></h2><button class="secondary" onclick="closeModal()">✕</button>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+    <div id="toast" class="toast hidden"></div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Điền thông tin dự án Supabase tại đây khi deploy online.
+        const SUPABASE_URL = 'https://ufkvfaksnpluqfchnftg.supabase.co'; const SUPABASE_ANON_KEY = 'sb_publishable_d5cRNsNTK5pwkgaPVXMUag_dPNMgw4X';
+        const remote = !!(SUPABASE_URL && SUPABASE_ANON_KEY); const sb = remote ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+        let db = { yards: [], slots: [], lots: [], moves: [], costs: [] }, tab = 'dashboard', selectedSlot = null;
+        const uid = () => crypto.randomUUID(), today = () => new Date().toISOString().slice(0, 10), money = n => Number(n || 0).toLocaleString('vi-VN') + ' ₫', num = n => Number(n || 0).toLocaleString('vi-VN'), esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])), get = (id) => document.getElementById(id), slotName = id => db.slots.find(x => x.id === id)?.name || '—', yardName = id => db.yards.find(x => x.id === id)?.name || '—', lotPackages = id => { let l = db.lots.find(x => x.id === id); if (!l) return 0; return Math.max(0, db.moves.filter(x => x.lot_id === id).reduce((n, x) => n + ((x.kind === 'IN' || x.kind === 'TRANSFER_IN') ? 1 : -1) * Number(x.packages ?? (Number(x.qty) / kgPerPackage(l))), 0)) }, kgPerPackage = l => Number(l?.kg_per_package) || Number(l?.quantity || 0) / Number(l?.packages || 1), lotKg = id => db.moves.filter(x => x.lot_id === id).reduce((n, x) => { let l = db.lots.find(z => z.id === id); return n + ((x.kind === 'IN' || x.kind === 'TRANSFER_IN') ? 1 : -1) * Number(x.packages ?? (Number(x.qty) / kgPerPackage(l))) * kgPerPackage(l) }, 0), lotQty = id => db.moves.filter(x => x.lot_id === id).reduce((n, x) => n + ((x.kind === 'IN' || x.kind === 'TRANSFER_IN') ? 1 : -1) * Number(x.qty), 0), slotLots = id => db.lots.filter(x => x.slot_id === id && lotQty(x.id) > 0);
+        function moveLabel(k) { return ({ IN: 'Nhập', OUT: 'Xuất', TRANSFER_OUT: 'Chuyển đi', TRANSFER_IN: 'Nhận chuyển' })[k] || k }
+        function moveSlotName(m) { let l = db.lots.find(x => x.id === m.lot_id); return slotName(m.kind === 'TRANSFER_OUT' ? (m.from_slot_id || l?.slot_id) : (m.kind === 'TRANSFER_IN' ? (m.to_slot_id || l?.slot_id) : l?.slot_id)) }
+        function notice(t) { get('toast').textContent = t; get('toast').classList.remove('hidden'); setTimeout(() => get('toast').classList.add('hidden'), 3200) }
+        function seed() { let y = uid(), a = uid(), b = uid(), l = uid(), m = uid(); db = { yards: [{ id: y, name: 'VTX' }], slots: [{ id: a, yard_id: y, name: '1-VTX', x: 38, y: 48 }, { id: b, yard_id: y, name: '2-VTX', x: 220, y: 48 }], lots: [{ id: l, source_cont: 'TCLU1234567', slot_id: a, product: 'Chân gà Mỹ', customer: 'Khách hàng A', packages: 300, quantity: 6000, kg_per_package: 20, unit: 'kg', entry_date: today(), image_url: '' }, { id: m, source_cont: 'HDMU1324567', slot_id: a, product: 'Chân gà Brazil', customer: 'Khách hàng B', packages: 200, quantity: 5000, kg_per_package: 25, unit: 'kg', entry_date: today(), image_url: '' }], moves: [{ id: uid(), lot_id: l, kind: 'IN', qty: 6000, packages: 300, date: today() }, { id: uid(), lot_id: m, kind: 'IN', qty: 5000, packages: 200, date: today() }], costs: [{ id: uid(), lot_id: l, handling: 1500000, transport: 800000, extra: 0, electric_start: today(), electric_end: '', electric_daily: 50000, paid: 0, date: today() }] } }
+        function persist() { if (!remote) localStorage.setItem('vtx-demo', JSON.stringify(db)) }
+        async function load() { if (remote) { try { for (let t of Object.keys(db)) { let { data, error } = await sb.from(t).select('*'); if (error) throw error; db[t] = data || [] } } catch (e) { notice('Lỗi tải dữ liệu: ' + e.message) } } else { let s = localStorage.getItem('vtx-demo'); if (s) { try { db = JSON.parse(s) } catch { seed() } } else seed(); persist() } render() }
+        async function save(table, obj) { if (remote) { let { error } = await sb.from(table).insert(obj); if (error) throw error } else { db[table].push(obj); persist() } }
+        async function update(table, id, changes) { if (remote) { let { error } = await sb.from(table).update(changes).eq('id', id); if (error) throw error } else { Object.assign(db[table].find(x => x.id === id), changes); persist() } }
+        async function remove(table, id) { if (remote) { let { error } = await sb.from(table).delete().eq('id', id); if (error) throw error } else { db[table] = db[table].filter(x => x.id !== id); persist() } }
+        async function reload() { await load() }
+        function changeTab(t) { tab = t; document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === t)); render() }
+        document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => changeTab(b.dataset.tab));
+        function render() { let titles = { dashboard: 'Tổng quan kho', stock: 'Quản lý hàng hóa', yard: 'Sơ đồ container', cost: 'Công nợ & chi phí', report: 'Báo cáo hàng tháng' }; get('heading').textContent = titles[tab]; get('actions').innerHTML = ({ dashboard: '', stock: '<button class="primary" onclick="formLot()">+ Nhập hàng</button> <button class="secondary" onclick="formOut()">↗ Xuất hàng</button> <button class="secondary" onclick="formTransfer()">⇄ Chuyển kho</button>', yard: '<button class="primary" onclick="formYard()">+ Thêm bãi</button> <button class="secondary" onclick="formSlot()">+ Thêm cont</button>', cost: '<button class="primary" onclick="formCost()">+ Thêm chi phí</button>', report: '' })[tab]; get('content').innerHTML = ({ dashboard: dashboard, stock: stock, yard: yard, cost: cost, report: report })[tab](); if (tab === 'yard') enableDrag() }
+        const card = (title, value, sub) => `<div class="card"><span class="muted">${title}</span><b>${value}</b><span class="muted">${sub}</span></div>`;
+        function dashboard() { let total = db.lots.reduce((n, l) => n + lotPackages(l.id), 0), totalKg = db.lots.reduce((n, l) => n + lotKg(l.id), 0), due = db.costs.reduce((n, c) => n + costTotal(c) - Number(c.paid || 0), 0); return `<div class="cards">${card('Container lưu kho', db.slots.length, 'Tất cả bãi')}${card('Tổng số kiện tồn', num(total), 'Tồn theo từng lô')}${card('Tổng khối lượng tồn', num(totalKg) + ' kg', 'Tồn theo từng lô')}${card('Công nợ chưa thu', money(due), 'Bao gồm chi phí điện')}</div><div class="panel"><h2>Hàng nhập gần đây</h2>${lotTable(db.lots.slice().sort((a, b) => b.entry_date.localeCompare(a.entry_date)).slice(0, 8))}</div>` }
+        function lotTable(arr) { return `<table><thead><tr><th>Ảnh</th><th>Cont đầu vào</th><th>Loại hàng</th><th>Khách hàng</th><th>Vị trí lưu</th><th>Số kiện nhập</th><th>Kg/kiện</th><th>Tồn (kiện / kg)</th><th>Ngày vào</th></tr></thead><tbody>${arr.map(l => `<tr><td>${l.image_url ? `<img class="thumb" src="${esc(l.image_url)}">` : '📦'}</td><td><b>${esc(l.source_cont)}</b></td><td>${esc(l.product)}</td><td>${esc(l.customer)}</td><td><span class="tag">${esc(slotName(l.slot_id))}</span></td><td>${num(l.packages)}</td><td>${num(kgPerPackage(l))} kg</td><td><b>${num(lotPackages(l.id))} kiện / ${num(lotKg(l.id))} kg</b></td><td>${esc(l.entry_date)}</td></tr>`).join('') || '<tr><td colspan="9" class="empty">Chưa có hàng hóa</td></tr>'}</tbody></table>` }
+        function stock() { return `<div class="panel"><div class="toolbar"><input id="search" placeholder="Tìm cont, hàng, khách hàng..." oninput="filterStock()" style="min-width:260px"><span class="muted">Tồn kho tính từ lịch sử nhập/xuất</span></div><div id="stockTable">${lotTable(db.lots)}</div></div><div class="panel"><h2>Lịch sử nhập xuất</h2><table><tr><th>Ngày</th><th>Loại</th><th>Hàng hóa</th><th>Số kiện</th><th>Khối lượng (kg)</th><th>Cont lưu kho</th></tr>${db.moves.slice().reverse().map(m => `<tr><td>${esc(m.date)}</td><td>${moveLabel(m.kind)}</td><td>${esc(db.lots.find(l => l.id === m.lot_id)?.product || '—')}</td><td>${num(m.packages ?? (Number(m.qty) * Number(db.lots.find(l => l.id === m.lot_id)?.packages || 0) / Number(db.lots.find(l => l.id === m.lot_id)?.quantity || 1)))}</td><td>${num(m.packages != null ? Number(m.packages) * kgPerPackage(db.lots.find(l => l.id === m.lot_id)) : m.qty)}</td><td>${esc(moveSlotName(m))}</td></tr>`).join('')}</table></div>` }
+        function filterStock() { let q = get('search').value.toLowerCase(); get('stockTable').innerHTML = lotTable(db.lots.filter(l => [l.source_cont, l.product, l.customer, slotName(l.slot_id)].some(v => String(v).toLowerCase().includes(q)))) }
+        function yard() { let y = db.yards[0]; if (!y) return '<div class="panel empty">Chưa có bãi. Nhấn “Thêm bãi” để bắt đầu.</div>'; return `<div class="toolbar"><select id="yardSelect" onchange="selectedSlot=null;drawYard(this.value)">${db.yards.map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select><span class="muted">Kéo thả container để thay đổi vị trí. Bấm vào container để xem hàng bên trong.</span></div><div class="layout"><div class="panel"><h2>Mặt bằng bãi</h2><div class="yard" id="yardCanvas"></div></div><div class="panel" id="slotInfo"><h2>Chi tiết container</h2><p class="muted">Chọn một container trên sơ đồ.</p></div></div>` }
+        function drawYard(id) { let canvas = get('yardCanvas'); if (!canvas) return; canvas.innerHTML = db.slots.filter(s => s.yard_id === id).map(s => `<div class="slot ${selectedSlot === s.id ? 'selected' : ''}" data-id="${s.id}" style="left:${s.x}px;top:${s.y}px"><b>🚛 ${esc(s.name)}</b><small>${slotLots(s.id).length} loại hàng · ${num(slotLots(s.id).reduce((n, l) => n + lotPackages(l.id), 0))} kiện · ${num(slotLots(s.id).reduce((n, l) => n + lotKg(l.id), 0))} kg</small></div>`).join(''); enableDrag(); showSlot() }
+        function showSlot() { let s = db.slots.find(x => x.id === selectedSlot), el = get('slotInfo'); if (!el) return; if (!s) { el.innerHTML = '<h2>Chi tiết container</h2><p class="muted">Chọn một container trên sơ đồ.</p>'; return } el.innerHTML = `<h2>${esc(s.name)}</h2><p class="muted">Bãi: ${esc(yardName(s.yard_id))}</p>${slotLots(s.id).map(l => `<div style="padding:12px 0;border-bottom:1px solid #edf1f6"><b>${esc(l.product)}</b><div class="muted">${esc(l.customer)} · ${esc(l.source_cont)}</div><strong>${num(lotPackages(l.id))} kiện / ${num(lotKg(l.id))} kg</strong><div class="muted">${num(kgPerPackage(l))} kg/kiện</div></div>`).join('') || '<p class="muted">Container đang trống</p>'}` }
+        function enableDrag() { let c = get('yardCanvas'); if (!c) return; if (!c.dataset.ready) { c.dataset.ready = '1'; drawYard(get('yardSelect').value); return } c.querySelectorAll('.slot').forEach(el => { el.onpointerdown = e => { let s = db.slots.find(x => x.id === el.dataset.id), r = c.getBoundingClientRect(), startX = e.clientX, startY = e.clientY, oldX = s.x, oldY = s.y, moved = false; el.setPointerCapture(e.pointerId); el.onpointermove = ev => { let dx = ev.clientX - startX, dy = ev.clientY - startY; if (Math.abs(dx) + Math.abs(dy) > 5) moved = true; s.x = Math.max(0, Math.min(c.clientWidth - el.offsetWidth, oldX + dx)); s.y = Math.max(0, Math.min(c.clientHeight - el.offsetHeight, oldY + dy)); el.style.left = s.x + 'px'; el.style.top = s.y + 'px' }; el.onpointerup = async () => { el.onpointermove = null; el.onpointerup = null; selectedSlot = s.id; if (moved) { try { await update('slots', s.id, { x: Math.round(s.x), y: Math.round(s.y) }) } catch (err) { notice(err.message) } } drawYard(get('yardSelect').value) } } }) }
+        function costDays(c) { let start = new Date(c.electric_start || c.date), end = new Date(c.electric_end || today()); return isNaN(start) ? 0 : Math.max(0, Math.floor((end - start) / 86400000) + 1) } function costTotal(c) { return Number(c.handling || 0) + Number(c.transport || 0) + Number(c.extra || 0) + costDays(c) * Number(c.electric_daily || 0) }
+        function cost() { return `<div class="cards">${card('Tổng chi phí', money(db.costs.reduce((n, c) => n + costTotal(c), 0)), 'Đã ghi nhận')}${card('Đã thanh toán', money(db.costs.reduce((n, c) => n + Number(c.paid || 0), 0)), 'Khách hàng đã trả')}${card('Còn phải thu', money(db.costs.reduce((n, c) => n + costTotal(c) - Number(c.paid || 0), 0)), 'Công nợ')}${card('Số khoản phí', db.costs.length, 'Theo từng lô hàng')}</div><div class="panel"><table><tr><th>Ngày</th><th>Hàng / Khách hàng</th><th>Hạ hàng</th><th>Cước xe</th><th>Phát sinh</th><th>Ngày điện</th><th>Tổng</th><th>Còn nợ</th></tr>${db.costs.map(c => { let l = db.lots.find(x => x.id === c.lot_id); return `<tr><td>${esc(c.date)}</td><td>${esc(l?.product || '—')}<div class="muted">${esc(l?.customer || '')}</div></td><td>${money(c.handling)}</td><td>${money(c.transport)}</td><td>${money(c.extra)}</td><td>${costDays(c)}</td><td>${money(costTotal(c))}</td><td>${money(costTotal(c) - Number(c.paid || 0))}</td></tr>` }).join('')}</table></div>` }
+        function report() { return `<div class="panel"><div class="toolbar"><label>Tháng báo cáo <input type="month" id="reportMonth" value="${today().slice(0, 7)}" onchange="drawReport()"></label><button class="secondary" onclick="exportCSV()">↓ Xuất CSV (Excel)</button></div><div id="reportData"></div></div>` }
+        function drawReport() { let m = get('reportMonth')?.value || today().slice(0, 7), moves = db.moves.filter(x => x.date.startsWith(m)), costs = db.costs.filter(x => x.date.startsWith(m)), incoming = moves.filter(x => x.kind === 'IN').reduce((n, x) => n + Number(x.packages ?? 0), 0), outgoing = moves.filter(x => x.kind === 'OUT').reduce((n, x) => n + Number(x.packages ?? 0), 0); get('reportData').innerHTML = `<div class="cards">${card('Nhập trong tháng', num(incoming), 'kiện')}${card('Xuất trong tháng', num(outgoing), 'kiện')}${card('Phí ghi nhận', money(costs.reduce((n, c) => n + costTotal(c), 0)), 'Chi phí có ngày ghi nhận trong tháng')}${card('Đã thu', money(costs.reduce((n, c) => n + Number(c.paid || 0), 0)), 'Theo khoản phí')}</div><h2>Chi tiết giao dịch</h2><table><tr><th>Ngày</th><th>Nhập / Xuất</th><th>Khách hàng</th><th>Hàng hóa</th><th>Số kiện</th><th>Khối lượng (kg)</th></tr>${moves.map(x => { let l = db.lots.find(z => z.id === x.lot_id); return `<tr><td>${esc(x.date)}</td><td>${moveLabel(x.kind)}</td><td>${esc(l?.customer)}</td><td>${esc(l?.product)}</td><td>${num(x.packages ?? 0)}</td><td>${num(x.packages != null ? Number(x.packages) * kgPerPackage(l) : x.qty)}</td></tr>` }).join('')}</table>` }
+        function openModal(title, html) { get('modalTitle').textContent = title; get('modalBody').innerHTML = html; get('modal').classList.remove('hidden') } function closeModal() { get('modal').classList.add('hidden') }
+        const field = (label, name, type = 'text', extra = '') => `<div class="field"><label>${label}</label><input name="${name}" type="${type}" ${extra}></div>`, choose = (label, name, options) => `<div class="field"><label>${label}</label><select name="${name}" required>${options}</select></div>`, slotOpts = () => db.slots.map(s => `<option value="${s.id}">${esc(yardName(s.yard_id))} / ${esc(s.name)}</option>`).join(''), lotOpts = () => db.lots.map(l => `<option value="${l.id}">${esc(l.product)} - ${esc(l.customer)} (${num(lotQty(l.id))} ${esc(l.unit)})</option>`).join('');
+        function formLot() { if (!db.slots.length) return notice('Hãy tạo bãi và container lưu kho trước'); openModal('Nhập hàng vào kho', `<form id="f" class="formgrid">${field('Số container đầu vào', 'source_cont', 'text', 'required placeholder="TCLU1234567"')}${choose('Container lưu kho', 'slot_id', slotOpts())}${field('Tên loại hàng', 'product', 'text', 'required placeholder="Chân gà Mỹ"')}${field('Tên khách hàng', 'customer', 'text', 'required')}${field('Số kiện nhập', 'packages', 'number', 'required min="1" step="1"')}${field('Khối lượng mỗi kiện (kg)', 'kg_per_package', 'number', 'required min="0.001" step="any"')}<div class="field"><label>Tổng khối lượng nhập</label><div id="inWeight" class="tag">0 kg</div></div>${field('Ngày vào kho', 'entry_date', 'date', `value="${today()}" required`)}${field('Ảnh hàng hóa', 'image', 'file', 'accept="image/*"')}<div style="grid-column:1/-1"><button class="primary">Lưu phiếu nhập</button></div></form>`); let f = get('f'); const calc = () => get('inWeight').textContent = num(Number(f.elements.packages.value || 0) * Number(f.elements.kg_per_package.value || 0)) + ' kg'; f.elements.packages.oninput = calc; f.elements.kg_per_package.oninput = calc; f.onsubmit = async e => { e.preventDefault(); let d = Object.fromEntries(new FormData(f)), packages = Number(d.packages), kg = Number(d.kg_per_package); if (!Number.isInteger(packages) || packages < 1 || !Number.isFinite(kg) || kg <= 0) return notice('Số kiện phải là số nguyên dương và kg/kiện phải lớn hơn 0'); try { let image_url = '', file = f.image.files[0]; if (file) { if (remote) { let path = uid() + '-' + file.name.replace(/[^a-zA-Z0-9.\-]/g, '_'), r = await sb.storage.from('goods').upload(path, file); if (r.error) throw r.error; image_url = sb.storage.from('goods').getPublicUrl(path).data.publicUrl } else { if (file.size > 350000) throw Error('Ảnh demo tối đa 350KB.'); image_url = await new Promise(resolve => { let rd = new FileReader(); rd.onload = () => resolve(rd.result); rd.readAsDataURL(file) }) } } let l = { id: uid(), source_cont: d.source_cont.trim(), slot_id: d.slot_id, product: d.product.trim(), customer: d.customer.trim(), packages, kg_per_package: kg, quantity: packages * kg, unit: 'kg', entry_date: d.entry_date, image_url }; await save('lots', l); await save('moves', { id: uid(), lot_id: l.id, kind: 'IN', qty: l.quantity, packages, date: l.entry_date }); closeModal(); await reload(); notice('Đã nhập ' + num(packages) + ' kiện / ' + num(l.quantity) + ' kg') } catch (err) { notice(err.message) } } }
+        function formOut() {
+            let available = db.lots.filter(l => lotQty(l.id) > 0 && lotPackages(l.id) > 0);
+            if (!available.length) return notice('Không có hàng tồn để xuất');
+            openModal('Xuất hàng từ container', `<form id="f" class="formgrid">
+ ${choose('Bãi xuất hàng', 'yard_id', db.yards.map(y => `<option value="${y.id}">${esc(y.name)}</option>`).join(''))}
+ <div class="field"><label>Xuất từ container nào?</label><select name="slot_id" required></select></div>
+ <div class="field" style="grid-column:1/-1"><label>Loại hàng / Lô hàng</label><select name="lot_id" required></select></div>
+ <div class="field"><label>Số kiện xuất</label><input name="packages" type="number" min="1" step="1" required></div>
+ <div class="field"><label>Khối lượng xuất (tự tính)</label><div id="outWeight" class="tag">0 kg</div></div>
+ <div class="field"><label>Ngày xuất</label><input name="date" type="date" value="${today()}" required></div>
+ <div class="field" style="grid-column:1/-1"><div id="outRemain" class="hint"></div></div>
+ <div style="grid-column:1/-1"><button class="primary">Xác nhận xuất & trừ tồn kho</button></div></form>`);
+            let f = get('f');
+            const fillSlots = () => { let slots = db.slots.filter(sl => sl.yard_id === f.elements.yard_id.value && available.some(l => l.slot_id === sl.id)); f.elements.slot_id.innerHTML = slots.map(sl => `<option value="${sl.id}">${esc(sl.name)}</option>`).join(''); fillLots() };
+            const fillLots = () => { let lots = available.filter(l => l.slot_id === f.elements.slot_id.value); f.elements.lot_id.innerHTML = lots.map(l => `<option value="${l.id}">${esc(l.product)} — ${esc(l.customer)} — từ ${esc(l.source_cont)}</option>`).join(''); showRemain() };
+            const showRemain = () => { let l = db.lots.find(x => x.id === f.elements.lot_id.value); get('outRemain').textContent = l ? `Tồn hiện tại: ${num(lotPackages(l.id))} kiện / ${num(lotKg(l.id))} kg. Mỗi kiện: ${num(kgPerPackage(l))} kg. Xuất sẽ trừ đúng lô trong cont ${slotName(l.slot_id)}.` : 'Không có hàng trong cont này'; calcOut() }; const calcOut = () => { let l = db.lots.find(x => x.id === f.elements.lot_id.value); get('outWeight').textContent = num(Number(f.elements.packages.value || 0) * kgPerPackage(l)) + ' kg' };
+            f.elements.yard_id.onchange = fillSlots; f.elements.slot_id.onchange = fillLots; f.elements.lot_id.onchange = showRemain; f.elements.packages.oninput = calcOut; fillSlots();
+            f.onsubmit = async e => {
+                e.preventDefault(); let d = Object.fromEntries(new FormData(f)), l = db.lots.find(x => x.id === d.lot_id), packages = Number(d.packages), qty = packages * kgPerPackage(l);
+                if (!l || l.slot_id !== d.slot_id || db.slots.find(x => x.id === d.slot_id)?.yard_id !== d.yard_id) return notice('Vui lòng chọn đúng bãi, cont và lô hàng');
+                if (!Number.isInteger(packages) || packages <= 0 || !Number.isFinite(qty) || qty <= 0) return notice('Số kiện và số lượng xuất phải lớn hơn 0');
+                if (packages > lotPackages(l.id) + 1e-8 || qty > lotKg(l.id) + 1e-8) return notice('Số kiện hoặc số lượng xuất vượt tồn kho');
+                try { await save('moves', { id: uid(), lot_id: l.id, kind: 'OUT', packages, qty, date: d.date }); closeModal(); await reload(); notice('Đã xuất ' + num(packages) + ' kiện / ' + num(qty) + ' kg từ cont ' + slotName(l.slot_id)) } catch (err) { notice(err.message) }
+            };
+        }
+        function formTransfer() {
+            const available = db.lots.filter(l => lotPackages(l.id) > 0 && lotKg(l.id) > 0);
+            if (!available.length) return notice('Không có hàng tồn để chuyển');
+            if (db.slots.length < 2) return notice('Cần ít nhất 2 container để chuyển kho');
+            openModal('Chuyển hàng giữa các container', `<form id="f" class="formgrid">
+ ${choose('Bãi nguồn', 'yard_id', db.yards.map(y => `<option value="${y.id}">${esc(y.name)}</option>`).join(''))}
+ <div class="field"><label>Container nguồn</label><select name="from_slot_id" required></select></div>
+ <div class="field" style="grid-column:1/-1"><label>Loại hàng / Lô hàng</label><select name="lot_id" required></select></div>
+ <div class="field"><label>Bãi đích</label><select name="to_yard_id" required>${db.yards.map(y => `<option value="${y.id}">${esc(y.name)}</option>`).join('')}</select></div>
+ <div class="field"><label>Container đích</label><select name="to_slot_id" required></select></div>
+ <div class="field"><label>Số kiện chuyển</label><input name="packages" type="number" min="1" step="1" required></div>
+ <div class="field"><label>Khối lượng chuyển</label><div class="tag" id="transferKg">0 kg</div></div>
+ ${field('Ngày chuyển', 'date', 'date', `value="${today()}" required`)}
+ <div style="grid-column:1/-1" class="hint" id="transferRemain"></div>
+ <div style="grid-column:1/-1"><button class="primary">Xác nhận chuyển kho</button></div></form>`);
+            const f = get('f');
+            const updateKg = () => { let l = db.lots.find(x => x.id === f.elements.lot_id.value); get('transferKg').textContent = num(Number(f.elements.packages.value || 0) * kgPerPackage(l)) + ' kg'; get('transferRemain').textContent = l ? `Tồn nguồn: ${num(lotPackages(l.id))} kiện / ${num(lotKg(l.id))} kg · ${num(kgPerPackage(l))} kg/kiện` : '' };
+            const fillLots = () => { let arr = available.filter(l => l.slot_id === f.elements.from_slot_id.value); f.elements.lot_id.innerHTML = arr.map(l => `<option value="${l.id}">${esc(l.product)} — ${esc(l.customer)} — ${esc(l.source_cont)} (${num(lotPackages(l.id))} kiện)</option>`).join(''); updateKg() };
+            const fillSources = () => { let arr = db.slots.filter(sl => sl.yard_id === f.elements.yard_id.value && available.some(l => l.slot_id === sl.id)); f.elements.from_slot_id.innerHTML = arr.map(sl => `<option value="${sl.id}">${esc(sl.name)}</option>`).join(''); fillLots(); fillTargets() };
+            const fillTargets = () => { let arr = db.slots.filter(sl => sl.yard_id === f.elements.to_yard_id.value && sl.id !== f.elements.from_slot_id.value); f.elements.to_slot_id.innerHTML = arr.map(sl => `<option value="${sl.id}">${esc(sl.name)}</option>`).join('') };
+            f.elements.yard_id.onchange = fillSources; f.elements.from_slot_id.onchange = () => { fillLots(); fillTargets() }; f.elements.to_yard_id.onchange = fillTargets; f.elements.lot_id.onchange = updateKg; f.elements.packages.oninput = updateKg; fillSources();
+            f.onsubmit = async e => {
+                e.preventDefault(); let d = Object.fromEntries(new FormData(f)), l = db.lots.find(x => x.id === d.lot_id), count = Number(d.packages), kg = count * kgPerPackage(l), target = db.slots.find(x => x.id === d.to_slot_id);
+                if (!l || l.slot_id !== d.from_slot_id || !target || target.yard_id !== d.to_yard_id || d.from_slot_id === d.to_slot_id) return notice('Container nguồn hoặc đích không hợp lệ');
+                if (!Number.isInteger(count) || count <= 0 || count > lotPackages(l.id) || kg > lotKg(l.id) + 0.00001) return notice('Số kiện chuyển phải lớn hơn 0 và không vượt tồn kho');
+                let newLot = { ...l, id: uid(), slot_id: d.to_slot_id, packages: count, quantity: kg, entry_date: d.date };
+                try {
+                    if (remote) { let { error } = await sb.rpc('transfer_stock', { p_lot_id: l.id, p_target_slot_id: d.to_slot_id, p_packages: count, p_transfer_date: d.date, p_new_lot_id: newLot.id }); if (error) throw error }
+                    else {
+                        const snapshot = JSON.stringify(db);
+                        try { db.lots.push(newLot); db.moves.push({ id: uid(), lot_id: l.id, kind: 'TRANSFER_OUT', packages: count, qty: kg, date: d.date, from_slot_id: l.slot_id, to_slot_id: d.to_slot_id }, { id: uid(), lot_id: newLot.id, kind: 'TRANSFER_IN', packages: count, qty: kg, date: d.date, from_slot_id: l.slot_id, to_slot_id: d.to_slot_id }); persist() } catch (err) { db = JSON.parse(snapshot); throw err }
+                    }
+                    closeModal(); await reload(); notice(`Đã chuyển ${num(count)} kiện / ${num(kg)} kg từ ${slotName(l.slot_id)} sang ${slotName(d.to_slot_id)}`)
+                } catch (err) { notice('Không thể chuyển kho: ' + err.message) }
+            };
+        }
+        function formYard() { openModal('Thêm bãi container', `<form id="f">${field('Tên bãi', 'name', 'text', 'required placeholder="VTX"')}<p><button class="primary">Lưu bãi</button></p></form>`); get('f').onsubmit = async e => { e.preventDefault(); try { await save('yards', { id: uid(), name: e.target.name.value.trim() }); closeModal(); await reload() } catch (err) { notice(err.message) } } }
+        function formSlot() { if (!db.yards.length) return notice('Hãy thêm bãi trước'); openModal('Thêm container lưu kho', `<form id="f" class="formgrid">${choose('Bãi', 'yard_id', db.yards.map(y => `<option value="${y.id}">${esc(y.name)}</option>`).join(''))}${field('Tên cont', 'name', 'text', 'required placeholder="1-VTX"')}<div><button class="primary">Thêm container</button></div></form>`); get('f').onsubmit = async e => { e.preventDefault(); let d = Object.fromEntries(new FormData(e.target)); try { await save('slots', { id: uid(), yard_id: d.yard_id, name: d.name.trim(), x: 35 + (db.slots.length % 4) * 175, y: 40 + Math.floor(db.slots.length / 4) * 120 }); closeModal(); await reload() } catch (err) { notice(err.message) } } }
+        function formCost() { if (!db.lots.length) return notice('Hãy nhập hàng trước'); openModal('Ghi nhận chi phí / công nợ', `<form id="f" class="formgrid">${choose('Lô hàng', 'lot_id', lotOpts())}${field('Ngày ghi nhận', 'date', 'date', `value="${today()}" required`)}${field('Phí hạ hàng (₫)', 'handling', 'number', 'value="0" min="0"')}${field('Cước xe (₫)', 'transport', 'number', 'value="0" min="0"')}${field('Phát sinh (₫)', 'extra', 'number', 'value="0" min="0"')}${field('Ngày cắm điện', 'electric_start', 'date')}${field('Ngày ngắt điện (để trống nếu đang cắm)', 'electric_end', 'date')}${field('Tiền điện / ngày (₫)', 'electric_daily', 'number', 'value="0" min="0"')}${field('Đã thanh toán (₫)', 'paid', 'number', 'value="0" min="0"')}<div><button class="primary">Lưu chi phí</button></div></form>`); get('f').onsubmit = async e => { e.preventDefault(); let d = Object.fromEntries(new FormData(e.target)); for (let k of ['handling', 'transport', 'extra', 'electric_daily', 'paid']) d[k] = Number(d[k] || 0); d.id = uid(); d.electric_start = d.electric_start || null; d.electric_end = d.electric_end || null; try { await save('costs', d); closeModal(); await reload() } catch (err) { notice(err.message) } } }
+        function exportCSV() { let m = get('reportMonth').value, rows = [['Ngày', 'Loại', 'Khách hàng', 'Tên hàng', 'Cont đầu vào', 'Cont lưu kho', 'Số kiện', 'Khối lượng (kg)']]; db.moves.filter(x => x.date.startsWith(m)).forEach(x => { let l = db.lots.find(z => z.id === x.lot_id); rows.push([x.date, moveLabel(x.kind), l?.customer, l?.product, l?.source_cont, moveSlotName(x), x.packages ?? (Number(x.qty) * Number(l?.packages || 0) / Number(l?.quantity || 1)), x.packages != null ? Number(x.packages) * kgPerPackage(l) : x.qty]) }); let csv = '\ufeff' + rows.map(r => r.map(v => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(',')).join('\r\n'), a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); a.download = 'bao-cao-' + m + '.csv'; a.click(); URL.revokeObjectURL(a.href) }
+        async function signIn() { let { error } = await sb.auth.signInWithPassword({ email: get('email').value, password: get('password').value }); if (error) return notice(error.message); get('auth').classList.add('hidden'); get('app').classList.remove('hidden'); load() }
+        async function signUp() { let { error } = await sb.auth.signUp({ email: get('email').value, password: get('password').value }); notice(error ? error.message : 'Đã gửi yêu cầu đăng ký. Kiểm tra email nếu cần xác minh.') }
+        async function logout() { if (remote) { await sb.auth.signOut(); get('app').classList.add('hidden'); get('auth').classList.remove('hidden') } else notice('Bạn đang ở chế độ demo, không cần đăng nhập') }
+        (async () => { if (remote) { let { data } = await sb.auth.getSession(); if (!data.session) { get('app').classList.add('hidden'); get('auth').classList.remove('hidden'); return } } await load() })();
+    </script>
+</body>
+
+</html>
