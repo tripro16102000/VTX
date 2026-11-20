@@ -236,21 +236,33 @@
             gap: 18px
         }
 
+        .yard-viewport {
+            width: 100%;
+            height: min(68vh, 680px);
+            min-height: 420px;
+            overflow: auto;
+            overscroll-behavior: contain;
+            border: 1px solid #d5dfeb;
+            border-radius: 14px;
+            background: #f8fafc
+        }
+
         .yard {
             background: #edf3f9;
             border: 2px dashed #c5d2e4;
             border-radius: 14px;
             min-height: 420px;
+            min-width: 100%;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             background-image: linear-gradient(#dce5f0 1px, transparent 1px), linear-gradient(90deg, #dce5f0 1px, transparent 1px);
             background-size: 32px 32px
         }
 
         .slot {
             position: absolute;
-            width: 155px;
-            min-height: 94px;
+            width: 225px;
+            min-height: 128px;
             border-radius: 9px;
             border: 2px solid #4177a8;
             background: #d9edfa;
@@ -269,6 +281,58 @@
             display: block;
             margin-top: 8px;
             color: #42637f
+        }
+
+        .slot.rented {
+            border-color: var(--rental-color, #f59e0b);
+            background: var(--rental-color, #f59e0b);
+            color: #17263d
+        }
+
+        .slot.rented small {
+            color: #17263d
+        }
+
+        .slot.occupied {
+            background: #a8d9c3;
+            border-color: #39916d;
+            color: #123a2a
+        }
+
+        .slot.occupied small {
+            color: #123a2a
+        }
+
+        .slot .goods-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 8px
+        }
+
+        .slot .goods-line {
+            font-size: 12px;
+            line-height: 1.35;
+            border-top: 1px solid #295d4730;
+            padding-top: 5px;
+            overflow-wrap: anywhere
+        }
+
+        .slot .goods-total {
+            font-size: 12px;
+            font-weight: 750;
+            margin-top: 8px;
+            border-top: 1px solid #295d4740;
+            padding-top: 7px
+        }
+
+        .slot.vacant {
+            background: #d1d5db;
+            border-color: #9ca3af
+        }
+
+        .slot.vacant small {
+            color: #374151
         }
 
         .slot.selected {
@@ -513,15 +577,56 @@
         async function reload() { await load() }
         function changeTab(t) { tab = t; document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === t)); render() }
         document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => changeTab(b.dataset.tab));
-        function render() { let titles = { stock: 'Quản lý hàng hóa', yard: 'Sơ đồ container', cost: 'Công nợ & chi phí', report: 'Báo cáo hàng tháng' }; get('heading').textContent = titles[tab]; get('actions').innerHTML = ({ stock: '<button class="primary" onclick="formLot()">+ Nhập hàng</button> <button class="secondary" onclick="formOut()">↗ Xuất hàng</button> <button class="secondary" onclick="formTransfer()">⇄ Chuyển kho</button>', yard: '<button class="primary" onclick="formYard()">+ Thêm bãi</button> <button class="secondary" onclick="formSlot()">+ Thêm cont</button>', cost: '<button class="primary" onclick="formCost()">+ Tạo công nợ</button>', report: '' })[tab]; get('content').innerHTML = ({ stock: stock, yard: yard, cost: cost, report: report })[tab](); if (tab === 'yard') enableDrag() }
+        function render() { let titles = { stock: 'Quản lý hàng hóa', yard: 'Sơ đồ container', cost: 'Công nợ & chi phí', report: 'Báo cáo hàng tháng' }; get('heading').textContent = titles[tab]; get('actions').innerHTML = ({ stock: '<button class="primary" onclick="formLot()">+ Nhập hàng</button> <button class="secondary" onclick="formOut()">↗ Xuất hàng</button> <button class="secondary" onclick="formTransfer()">⇄ Chuyển kho</button>', yard: '<button class="primary" onclick="formYard()">+ Thêm bãi</button> <button class="secondary" onclick="formSlot()">+ Thêm cont</button>', cost: '<button class="primary" onclick="formCost()">+ Tạo công nợ</button>', report: '' })[tab]; get('content').innerHTML = ({ stock: stock, yard: yard, cost: cost, report: report })[tab](); if (tab === 'yard') { const select = get('yardSelect'); if (select) drawYard(select.value) } }
         const card = (title, value, sub) => `<div class="card"><span class="muted">${title}</span><b>${value}</b><span class="muted">${sub}</span></div>`;
         function lotTable(arr) { return `<table><thead><tr><th>Ảnh</th><th>Cont đầu vào</th><th>Loại hàng</th><th>Khách hàng</th><th>Vị trí lưu</th><th>Số kiện nhập</th><th>Kg/kiện</th><th>Tồn (kiện / kg)</th><th>Ngày vào</th><th>Thao tác</th></tr></thead><tbody>${arr.map(l => `<tr><td>${l.image_url ? `<img class="thumb" src="${esc(l.image_url)}">` : '📦'}</td><td><b>${esc(l.source_cont)}</b></td><td>${esc(l.product)}</td><td>${esc(l.customer)}</td><td><span class="tag">${esc(slotName(l.slot_id))}</span></td><td>${num(l.packages)}</td><td>${num(kgPerPackage(l))} kg</td><td><b>${num(lotPackages(l.id))} kiện / ${num(lotKg(l.id))} kg</b></td><td>${esc(l.entry_date)}</td><td><div class="row-actions"><button onclick="editLot('${l.id}')">✎ Sửa</button><button class="delete" onclick="deleteLot('${l.id}')">🗑 Xóa</button></div></td></tr>`).join('') || '<tr><td colspan="10" class="empty">Chưa có hàng hóa</td></tr>'}</tbody></table>` }
         function stock() { return `<div class="panel"><div class="toolbar"><input id="search" placeholder="Tìm cont, hàng, khách hàng..." oninput="filterStock()" style="min-width:260px"><span class="muted">Tồn kho tính từ lịch sử nhập/xuất</span></div><div id="stockTable">${lotTable(db.lots)}</div></div><div class="panel"><h2>Lịch sử nhập xuất</h2><table><tr><th>Ngày</th><th>Loại</th><th>Hàng hóa</th><th>Số kiện</th><th>Khối lượng (kg)</th><th>Cont lưu kho</th></tr>${db.moves.slice().reverse().map(m => `<tr><td>${esc(m.date)}</td><td>${moveLabel(m.kind)}</td><td>${esc(db.lots.find(l => l.id === m.lot_id)?.product || '—')}</td><td>${num(m.packages ?? (Number(m.qty) * Number(db.lots.find(l => l.id === m.lot_id)?.packages || 0) / Number(db.lots.find(l => l.id === m.lot_id)?.quantity || 1)))}</td><td>${num(m.packages != null ? Number(m.packages) * kgPerPackage(db.lots.find(l => l.id === m.lot_id)) : m.qty)}</td><td>${esc(moveSlotName(m))}</td></tr>`).join('')}</table></div>` }
         function filterStock() { let q = get('search').value.toLowerCase(); get('stockTable').innerHTML = lotTable(db.lots.filter(l => [l.source_cont, l.product, l.customer, slotName(l.slot_id)].some(v => String(v).toLowerCase().includes(q)))) }
-        function yard() { let y = db.yards[0]; if (!y) return '<div class="panel empty">Chưa có bãi. Nhấn “Thêm bãi” để bắt đầu.</div>'; return `<div class="management" id="yardManage"></div><div class="toolbar"><select id="yardSelect" onchange="selectedSlot=null;drawYard(this.value)">${db.yards.map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select><span class="muted">Kéo thả container để thay đổi vị trí. Bấm vào container để xem hàng bên trong.</span></div><div class="layout"><div class="panel"><h2>Mặt bằng bãi</h2><div class="yard" id="yardCanvas"></div></div><div class="panel" id="slotInfo"><h2>Chi tiết container</h2><p class="muted">Chọn một container trên sơ đồ.</p></div></div>` }
-        function drawYard(id) { let canvas = get('yardCanvas'); if (!canvas) return; let actions = get('yardManage'); if (actions) actions.innerHTML = `<button class="secondary" onclick="editYard('${id}')">✎ Sửa tên bãi</button><button class="secondary danger" onclick="deleteYard('${id}')">🗑 Xóa bãi</button>`; canvas.innerHTML = db.slots.filter(s => s.yard_id === id).map(s => `<div class="slot ${selectedSlot === s.id ? 'selected' : ''}" data-id="${s.id}" style="left:${s.x}px;top:${s.y}px"><b>🚛 ${esc(s.name)}</b><small>${slotLots(s.id).length} loại hàng · ${num(slotLots(s.id).reduce((n, l) => n + lotPackages(l.id), 0))} kiện · ${num(slotLots(s.id).reduce((n, l) => n + lotKg(l.id), 0))} kg</small></div>`).join(''); enableDrag(); showSlot() }
-        function showSlot() { let s = db.slots.find(x => x.id === selectedSlot), el = get('slotInfo'); if (!el) return; if (!s) { el.innerHTML = '<h2>Chi tiết container</h2><p class="muted">Chọn một container trên sơ đồ.</p>'; return } el.innerHTML = `<h2>${esc(s.name)}</h2><p class="muted">Bãi: ${esc(yardName(s.yard_id))}</p><div class="management"><button class="secondary" onclick="editSlot('${s.id}')">✎ Sửa cont</button><button class="secondary danger" onclick="deleteSlot('${s.id}')">🗑 Xóa cont</button></div>${slotLots(s.id).map(l => `<div style="padding:12px 0;border-bottom:1px solid #edf1f6"><b>${esc(l.product)}</b><div class="muted">${esc(l.customer)} · ${esc(l.source_cont)}</div><strong>${num(lotPackages(l.id))} kiện / ${num(lotKg(l.id))} kg</strong><div class="muted">${num(kgPerPackage(l))} kg/kiện</div></div>`).join('') || '<p class="muted">Container đang trống</p>'}` }
-        function enableDrag() { let c = get('yardCanvas'); if (!c) return; if (!c.dataset.ready) { c.dataset.ready = '1'; drawYard(get('yardSelect').value); return } c.querySelectorAll('.slot').forEach(el => { el.onpointerdown = e => { let s = db.slots.find(x => x.id === el.dataset.id), r = c.getBoundingClientRect(), startX = e.clientX, startY = e.clientY, oldX = s.x, oldY = s.y, moved = false; el.setPointerCapture(e.pointerId); el.onpointermove = ev => { let dx = ev.clientX - startX, dy = ev.clientY - startY; if (Math.abs(dx) + Math.abs(dy) > 5) moved = true; s.x = Math.max(0, Math.min(c.clientWidth - el.offsetWidth, oldX + dx)); s.y = Math.max(0, Math.min(c.clientHeight - el.offsetHeight, oldY + dy)); el.style.left = s.x + 'px'; el.style.top = s.y + 'px' }; el.onpointerup = async () => { el.onpointermove = null; el.onpointerup = null; selectedSlot = s.id; if (moved) { try { await update('slots', s.id, { x: Math.round(s.x), y: Math.round(s.y) }) } catch (err) { notice(err.message) } } drawYard(get('yardSelect').value) } } }) }
+        function yard() { let y = db.yards[0]; if (!y) return '<div class="panel empty">Chưa có bãi. Nhấn “Thêm bãi” để bắt đầu.</div>'; return `<div class="management" id="yardManage"></div><div class="toolbar"><select id="yardSelect" onchange="selectedSlot=null;drawYard(this.value)">${db.yards.map(x => `<option value="${x.id}">${esc(x.name)}</option>`).join('')}</select><span class="muted">Kéo thả container để thay đổi vị trí. Bấm container để xem hàng hoặc đánh dấu cho thuê. Xám = trống; xanh = có hàng (hiện loại hàng, kiện, kg); màu tùy chọn = cho thuê.</span></div><div class="layout"><div class="panel"><h2>Mặt bằng bãi</h2><div class="management"><span class="muted">Cuộn ngang / dọc để xem toàn bộ cont · Giữ và kéo để di chuyển</span></div><div class="yard-viewport" id="yardViewport"><div class="yard" id="yardCanvas"></div></div></div><div class="panel" id="slotInfo"><h2>Chi tiết container</h2><p class="muted">Chọn một container trên sơ đồ.</p></div></div>` }
+        function safeRentalColor(c) { return /^#[0-9a-fA-F]{6}$/.test(c || '') ? c : '#fbbf24' }
+        function slotInventory(id) { return slotLots(id).map(l => ({ lot: l, packages: lotPackages(l.id), kg: lotKg(l.id) })).filter(x => x.packages > 0) }
+        function slotSummary(id) { let items = slotInventory(id); return { items, packages: items.reduce((n, x) => n + x.packages, 0), kg: items.reduce((n, x) => n + x.kg, 0) } }
+        function drawYard(id) {
+            let canvas = get('yardCanvas'); if (!canvas) return;
+            let actions = get('yardManage'); if (actions) actions.innerHTML = `<button class="secondary" onclick="editYard('${id}')">✎ Sửa tên bãi</button><button class="secondary danger" onclick="deleteYard('${id}')">🗑 Xóa bãi</button>`;
+            let slots = db.slots.filter(s => s.yard_id === id), viewport = get('yardViewport');
+            // The map grows to fit every saved position. The viewport scrolls independently.
+            let maxX = Math.max(0, ...slots.map(s => (Number(s.x) || 0) + 245)), maxY = Math.max(0, ...slots.map(s => (Number(s.y) || 0) + Math.max(160, 135 + slotInventory(s.id).length * 52)));
+            canvas.style.width = Math.max(viewport?.clientWidth || 600, maxX + 100) + 'px';
+            canvas.style.height = Math.max(viewport?.clientHeight || 420, maxY + 100) + 'px';
+            canvas.innerHTML = slots.map(s => {
+                let inventory = slotSummary(s.id), rented = !!s.rental_customer, occupied = !rented && inventory.items.length > 0;
+                let lines = inventory.items.map(({ lot, packages, kg }) => `<div class="goods-line"><b>${esc(lot.product)}</b><div>${num(packages)} kiện · ${num(kg)} kg</div></div>`).join('');
+                return `<div class="slot ${rented ? 'rented' : occupied ? 'occupied' : 'vacant'} ${selectedSlot === s.id ? 'selected' : ''}" data-id="${s.id}" style="left:${Number(s.x) || 0}px;top:${Number(s.y) || 0}px;${rented ? `--rental-color:${safeRentalColor(s.rental_color)};` : ''}"><b>🚛 ${esc(s.name)}</b>${rented ? `<small><b>🔑 Đang cho thuê</b>${esc(s.rental_customer)}<br>Từ ${esc(s.rental_start || '—')}</small>` : occupied ? `<small><b>📦 Đang chứa hàng</b></small><div class="goods-list">${lines}</div><div class="goods-total">Tổng: ${num(inventory.packages)} kiện · ${num(inventory.kg)} kg</div>` : '<small>Container trống · 0 kiện · 0 kg</small>'}</div>`
+            }).join(''); enableDrag(); showSlot()
+        }
+        function showSlot() { let s = db.slots.find(x => x.id === selectedSlot), el = get('slotInfo'); if (!el) return; if (!s) { el.innerHTML = '<h2>Chi tiết container</h2><p class="muted">Chọn một container trên sơ đồ.</p>'; return } el.innerHTML = `<h2>${esc(s.name)}</h2><p class="muted">Bãi: ${esc(yardName(s.yard_id))}</p><div class="management"><button class="primary" onclick="formRental('${s.id}')">🎨 ${s.rental_customer ? 'Sửa / trả cont thuê' : 'Cho thuê cont'}</button><button class="secondary" onclick="editSlot('${s.id}')">✎ Sửa cont</button><button class="secondary danger" onclick="deleteSlot('${s.id}')">🗑 Xóa cont</button></div>${s.rental_customer ? `<div class="panel" style="padding:12px"><b>Đang cho thuê: ${esc(s.rental_customer)}</b><div class="muted">Bắt đầu: ${esc(s.rental_start || '—')}</div><div class="muted">Màu đánh dấu: <span style="display:inline-block;width:15px;height:15px;background:${safeRentalColor(s.rental_color)};border:1px solid #aaa;vertical-align:middle"></span></div></div>` : ''}${slotLots(s.id).map(l => `<div style="padding:12px 0;border-bottom:1px solid #edf1f6"><b>${esc(l.product)}</b><div class="muted">${esc(l.customer)} · ${esc(l.source_cont)}</div><strong>${num(lotPackages(l.id))} kiện / ${num(lotKg(l.id))} kg</strong><div class="muted">${num(kgPerPackage(l))} kg/kiện</div></div>`).join('') || '<p class="muted">Không có hàng tồn trong container</p>'}` }
+        function enableDrag() {
+            const c = get('yardCanvas'); if (!c) return;
+            c.querySelectorAll('.slot').forEach(el => {
+                el.onpointerdown = e => {
+                    if (e.button !== 0) return;
+                    const slot = db.slots.find(x => x.id === el.dataset.id); if (!slot) return;
+                    let startX = e.clientX, startY = e.clientY, oldX = Number(slot.x) || 0, oldY = Number(slot.y) || 0, moved = false;
+                    el.setPointerCapture(e.pointerId);
+                    el.onpointermove = ev => {
+                        let dx = ev.clientX - startX, dy = ev.clientY - startY;
+                        if (Math.abs(dx) + Math.abs(dy) > 5) moved = true;
+                        if (!moved) return;
+                        slot.x = Math.max(0, Math.round(oldX + dx)); slot.y = Math.max(0, Math.round(oldY + dy));
+                        el.style.left = slot.x + 'px'; el.style.top = slot.y + 'px';
+                        c.style.width = Math.max(c.clientWidth, slot.x + el.offsetWidth + 100) + 'px';
+                        c.style.height = Math.max(c.clientHeight, slot.y + el.offsetHeight + 100) + 'px';
+                    };
+                    el.onpointerup = async () => {
+                        el.onpointermove = null; el.onpointerup = null; selectedSlot = slot.id;
+                        if (moved) { try { await update('slots', slot.id, { x: slot.x, y: slot.y }) } catch (err) { notice(err.message) } }
+                        drawYard(get('yardSelect').value);
+                    };
+                    el.onpointercancel = () => { el.onpointermove = null; el.onpointerup = null; drawYard(get('yardSelect').value) };
+                };
+            });
+        }
         function costDays(c) { let start = new Date(c.electric_start || c.date), end = new Date(c.electric_end || today()); return isNaN(start) ? 0 : Math.max(0, Math.floor((end - start) / 86400000) + 1) } function legacyCostTotal(c) { return Number(c.handling || 0) + Number(c.transport || 0) + Number(c.extra || 0) + costDays(c) * Number(c.electric_daily || 0) }
         function rentalDays(start, end) { if (!start || !end) return 0; const a = Date.parse(start + 'T00:00:00Z'), b = Date.parse(end + 'T00:00:00Z'); if (!Number.isFinite(a) || !Number.isFinite(b) || b < a) return 0; return Math.max(1, Math.round((b - a) / 86400000)) }
         function debtTotal(c) { return Number(c.handling || 0) + Number(c.transport || 0) + Number(c.extra || 0) + Number(c.rental_days || 0) * Number(c.rental_daily || 0) }
@@ -537,7 +642,7 @@
         function drawReport() { let m = get('reportMonth')?.value || today().slice(0, 7), moves = db.moves.filter(x => x.date.startsWith(m)), costs = (db.debts || []).filter(x => x.date.startsWith(m)), incoming = moves.filter(x => x.kind === 'IN').reduce((n, x) => n + Number(x.packages ?? 0), 0), outgoing = moves.filter(x => x.kind === 'OUT').reduce((n, x) => n + Number(x.packages ?? 0), 0); get('reportData').innerHTML = `<div class="cards">${card('Nhập trong tháng', num(incoming), 'kiện')}${card('Xuất trong tháng', num(outgoing), 'kiện')}${card('Phí ghi nhận', money(costs.reduce((n, c) => n + debtTotal(c), 0)), 'Chi phí có ngày ghi nhận trong tháng')}${card('Đã thu', money(costs.reduce((n, c) => n + Number(c.paid || 0), 0)), 'Theo khoản phí')}</div><h2>Chi tiết giao dịch</h2><table><tr><th>Ngày</th><th>Nhập / Xuất</th><th>Khách hàng</th><th>Hàng hóa</th><th>Số kiện</th><th>Khối lượng (kg)</th></tr>${moves.map(x => { let l = db.lots.find(z => z.id === x.lot_id); return `<tr><td>${esc(x.date)}</td><td>${moveLabel(x.kind)}</td><td>${esc(l?.customer)}</td><td>${esc(l?.product)}</td><td>${num(x.packages ?? 0)}</td><td>${num(x.packages != null ? Number(x.packages) * kgPerPackage(l) : x.qty)}</td></tr>` }).join('')}</table>` }
         function openModal(title, html) { get('modalTitle').textContent = title; get('modalBody').innerHTML = html; get('modal').classList.remove('hidden') } function closeModal() { get('modal').classList.add('hidden') }
         const field = (label, name, type = 'text', extra = '') => `<div class="field"><label>${label}</label><input name="${name}" type="${type}" ${extra}></div>`, choose = (label, name, options) => `<div class="field"><label>${label}</label><select name="${name}" required>${options}</select></div>`, slotOpts = () => db.slots.map(s => `<option value="${s.id}">${esc(yardName(s.yard_id))} / ${esc(s.name)}</option>`).join(''), lotOpts = () => db.lots.map(l => `<option value="${l.id}">${esc(l.product)} - ${esc(l.customer)} (${num(lotQty(l.id))} ${esc(l.unit)})</option>`).join('');
-        function formLot() { if (!db.slots.length) return notice('Hãy tạo bãi và container lưu kho trước'); openModal('Nhập hàng vào kho', `<form id="f" class="formgrid">${field('Số container đầu vào', 'source_cont', 'text', 'required placeholder="TCLU1234567"')}${choose('Container lưu kho', 'slot_id', slotOpts())}${field('Tên loại hàng', 'product', 'text', 'required placeholder="Chân gà Mỹ"')}${field('Tên khách hàng', 'customer', 'text', 'required')}${field('Số kiện nhập', 'packages', 'number', 'required min="1" step="1"')}${field('Khối lượng mỗi kiện (kg)', 'kg_per_package', 'number', 'required min="0.001" step="any"')}<div class="field"><label>Tổng khối lượng nhập</label><div id="inWeight" class="tag">0 kg</div></div>${field('Ngày vào kho', 'entry_date', 'date', `value="${today()}" required`)}${field('Ảnh hàng hóa', 'image', 'file', 'accept="image/*"')}<div style="grid-column:1/-1"><button class="primary">Lưu phiếu nhập</button></div></form>`); let f = get('f'); const calc = () => get('inWeight').textContent = num(Number(f.elements.packages.value || 0) * Number(f.elements.kg_per_package.value || 0)) + ' kg'; f.elements.packages.oninput = calc; f.elements.kg_per_package.oninput = calc; f.onsubmit = async e => { e.preventDefault(); let d = Object.fromEntries(new FormData(f)), packages = Number(d.packages), kg = Number(d.kg_per_package); if (!Number.isInteger(packages) || packages < 1 || !Number.isFinite(kg) || kg <= 0) return notice('Số kiện phải là số nguyên dương và kg/kiện phải lớn hơn 0'); try { let image_url = '', file = f.image.files[0]; if (file) { if (remote) { let path = uid() + '-' + file.name.replace(/[^a-zA-Z0-9.\-]/g, '_'), r = await sb.storage.from('goods').upload(path, file); if (r.error) throw r.error; image_url = sb.storage.from('goods').getPublicUrl(path).data.publicUrl } else { if (file.size > 350000) throw Error('Ảnh demo tối đa 350KB.'); image_url = await new Promise(resolve => { let rd = new FileReader(); rd.onload = () => resolve(rd.result); rd.readAsDataURL(file) }) } } let l = { id: uid(), source_cont: d.source_cont.trim(), slot_id: d.slot_id, product: d.product.trim(), customer: d.customer.trim(), packages, kg_per_package: kg, quantity: packages * kg, unit: 'kg', entry_date: d.entry_date, image_url }; await save('lots', l); await save('moves', { id: uid(), lot_id: l.id, kind: 'IN', qty: l.quantity, packages, date: l.entry_date }); closeModal(); await reload(); notice('Đã nhập ' + num(packages) + ' kiện / ' + num(l.quantity) + ' kg') } catch (err) { notice(err.message) } } }
+        function formLot() { if (!db.slots.length) return notice('Hãy tạo bãi và container lưu kho trước'); openModal('Nhập hàng vào kho', `<form id="f" class="formgrid">${field('Số container đầu vào', 'source_cont', 'text', 'required placeholder="TCLU1234567"')}${choose('Container lưu kho', 'slot_id', slotOpts())}${field('Tên loại hàng', 'product', 'text', 'required placeholder="Chân gà Mỹ"')}${field('Tên khách hàng', 'customer', 'text', 'required')}${field('Số kiện nhập', 'packages', 'number', 'required min="1" step="1"')}${field('Khối lượng mỗi kiện (kg)', 'kg_per_package', 'number', 'required min="0.001" step="any"')}<div class="field"><label>Tổng khối lượng nhập</label><div id="inWeight" class="tag">0 kg</div></div>${field('Ngày vào kho', 'entry_date', 'date', `value="${today()}" required`)}${field('Ảnh hàng hóa', 'image', 'file', 'accept="image/*"')}<div style="grid-column:1/-1"><button class="primary">Lưu phiếu nhập</button></div></form>`); let f = get('f'); const calc = () => get('inWeight').textContent = num(Number(f.elements.packages.value || 0) * Number(f.elements.kg_per_package.value || 0)) + ' kg'; f.elements.packages.oninput = calc; f.elements.kg_per_package.oninput = calc; f.onsubmit = async e => { e.preventDefault(); let d = Object.fromEntries(new FormData(f)), packages = Number(d.packages), kg = Number(d.kg_per_package); if (!Number.isInteger(packages) || packages < 1 || !Number.isFinite(kg) || kg <= 0) return notice('Số kiện phải là số nguyên dương và kg/kiện phải lớn hơn 0'); if (db.slots.find(x => x.id === d.slot_id)?.rental_customer) return notice('Container đang cho thuê riêng. Không thể nhập hàng vào cont này.'); try { let image_url = '', file = f.image.files[0]; if (file) { if (remote) { let path = uid() + '-' + file.name.replace(/[^a-zA-Z0-9.\-]/g, '_'), r = await sb.storage.from('goods').upload(path, file); if (r.error) throw r.error; image_url = sb.storage.from('goods').getPublicUrl(path).data.publicUrl } else { if (file.size > 350000) throw Error('Ảnh demo tối đa 350KB.'); image_url = await new Promise(resolve => { let rd = new FileReader(); rd.onload = () => resolve(rd.result); rd.readAsDataURL(file) }) } } let l = { id: uid(), source_cont: d.source_cont.trim(), slot_id: d.slot_id, product: d.product.trim(), customer: d.customer.trim(), packages, kg_per_package: kg, quantity: packages * kg, unit: 'kg', entry_date: d.entry_date, image_url }; await save('lots', l); await save('moves', { id: uid(), lot_id: l.id, kind: 'IN', qty: l.quantity, packages, date: l.entry_date }); closeModal(); await reload(); notice('Đã nhập ' + num(packages) + ' kiện / ' + num(l.quantity) + ' kg') } catch (err) { notice(err.message) } } }
         function formOut() {
             let available = db.lots.filter(l => lotQty(l.id) > 0 && lotPackages(l.id) > 0);
             if (!available.length) return notice('Không có hàng tồn để xuất');
@@ -586,7 +691,7 @@
             f.elements.yard_id.onchange = fillSources; f.elements.from_slot_id.onchange = () => { fillLots(); fillTargets() }; f.elements.to_yard_id.onchange = fillTargets; f.elements.lot_id.onchange = updateKg; f.elements.packages.oninput = updateKg; fillSources();
             f.onsubmit = async e => {
                 e.preventDefault(); let d = Object.fromEntries(new FormData(f)), l = db.lots.find(x => x.id === d.lot_id), count = Number(d.packages), kg = count * kgPerPackage(l), target = db.slots.find(x => x.id === d.to_slot_id);
-                if (!l || l.slot_id !== d.from_slot_id || !target || target.yard_id !== d.to_yard_id || d.from_slot_id === d.to_slot_id) return notice('Container nguồn hoặc đích không hợp lệ');
+                if (!l || l.slot_id !== d.from_slot_id || !target || target.rental_customer || target.yard_id !== d.to_yard_id || d.from_slot_id === d.to_slot_id) return notice('Container nguồn hoặc đích không hợp lệ');
                 if (!Number.isInteger(count) || count <= 0 || count > lotPackages(l.id) || kg > lotKg(l.id) + 0.00001) return notice('Số kiện chuyển phải lớn hơn 0 và không vượt tồn kho');
                 let newLot = { ...l, id: uid(), slot_id: d.to_slot_id, packages: count, quantity: kg, entry_date: d.date };
                 try {
@@ -599,8 +704,20 @@
                 } catch (err) { notice('Không thể chuyển kho: ' + err.message) }
             };
         }
+        function formRental(id) {
+            const s = db.slots.find(x => x.id === id); if (!s) return;
+            openModal('Quản lý cho thuê container — ' + esc(s.name), `<form id="rentalForm" class="formgrid"><div class="field"><label>Trạng thái</label><select name="status"><option value="rented">Đang cho thuê</option><option value="vacant">Trả container / Đánh dấu trống</option></select></div>${field('Tên khách thuê', 'rental_customer', 'text', 'placeholder="A Đoàn"')}${field('Ngày bắt đầu thuê', 'rental_start', 'date', '')}${field('Màu hiển thị trên sơ đồ', 'rental_color', 'color', '')}<div class="hint" style="grid-column:1/-1">Đánh dấu cho thuê không tạo phiếu nhập hàng, không thay đổi số kiện hoặc kg tồn. Khi trả cont, màu trở về xám nếu không còn hàng.</div><div style="grid-column:1/-1"><button class="primary">Lưu trạng thái</button></div></form>`);
+            const f = get('rentalForm'); f.elements.status.value = s.rental_customer ? 'rented' : 'vacant'; f.elements.rental_customer.value = s.rental_customer || ''; f.elements.rental_start.value = s.rental_start || today(); f.elements.rental_color.value = safeRentalColor(s.rental_color); const toggle = () => { let on = f.elements.status.value === 'rented'; for (let k of ['rental_customer', 'rental_start', 'rental_color']) f.elements[k].disabled = !on }; f.elements.status.onchange = toggle; toggle();
+            f.onsubmit = async e => {
+                e.preventDefault(); let renting = f.elements.status.value === 'rented', customer = f.elements.rental_customer.value.trim(), date = f.elements.rental_start.value;
+                if (renting && (!customer || !date)) return notice('Nhập tên khách thuê và ngày bắt đầu');
+                if (renting && slotLots(id).length) return notice('Container đang chứa hàng. Hãy chuyển/xuất hết hàng trước khi đánh dấu cho thuê riêng.');
+                let changes = { rental_customer: renting ? customer : null, rental_start: renting ? date : null, rental_color: renting ? f.elements.rental_color.value : null };
+                try { await update('slots', id, changes); closeModal(); await reload(); notice(renting ? 'Đã đánh dấu container cho ' + customer + ' thuê' : 'Đã trả container, chuyển về trạng thái trống') } catch (err) { notice(err.message) }
+            };
+        }
         function formYard() { openModal('Thêm bãi container', `<form id="f">${field('Tên bãi', 'name', 'text', 'required placeholder="VTX"')}<p><button class="primary">Lưu bãi</button></p></form>`); get('f').onsubmit = async e => { e.preventDefault(); try { await save('yards', { id: uid(), name: e.target.name.value.trim() }); closeModal(); await reload() } catch (err) { notice(err.message) } } }
-        function formSlot() { if (!db.yards.length) return notice('Hãy thêm bãi trước'); openModal('Thêm container lưu kho', `<form id="f" class="formgrid">${choose('Bãi', 'yard_id', db.yards.map(y => `<option value="${y.id}">${esc(y.name)}</option>`).join(''))}${field('Tên cont', 'name', 'text', 'required placeholder="1-VTX"')}<div><button class="primary">Thêm container</button></div></form>`); get('f').onsubmit = async e => { e.preventDefault(); let d = Object.fromEntries(new FormData(e.target)); try { await save('slots', { id: uid(), yard_id: d.yard_id, name: d.name.trim(), x: 35 + (db.slots.length % 4) * 175, y: 40 + Math.floor(db.slots.length / 4) * 120 }); closeModal(); await reload() } catch (err) { notice(err.message) } } }
+        function formSlot() { if (!db.yards.length) return notice('Hãy thêm bãi trước'); openModal('Thêm container lưu kho', `<form id="f" class="formgrid">${choose('Bãi', 'yard_id', db.yards.map(y => `<option value="${y.id}">${esc(y.name)}</option>`).join(''))}${field('Tên cont', 'name', 'text', 'required placeholder="1-VTX"')}<div><button class="primary">Thêm container</button></div></form>`); get('f').onsubmit = async e => { e.preventDefault(); let d = Object.fromEntries(new FormData(e.target)); try { await save('slots', { id: uid(), yard_id: d.yard_id, name: d.name.trim(), x: 35 + (db.slots.filter(s => s.yard_id === d.yard_id).length % 4) * 255, y: 40 + Math.floor(db.slots.filter(s => s.yard_id === d.yard_id).length / 4) * 260 }); closeModal(); await reload() } catch (err) { notice(err.message) } } }
         function formCost() {
             openModal('Tạo công nợ theo khách hàng', `<form id="f" class="formgrid">
 ${field('Tên khách hàng', 'customer', 'text', 'required placeholder="A Đinh"')}

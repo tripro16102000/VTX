@@ -153,3 +153,10 @@ REVOKE ALL ON FUNCTION public.delete_unused_lot(uuid) FROM PUBLIC, anon;
 REVOKE ALL ON FUNCTION public.update_unused_lot(uuid,text,uuid,text,text,numeric,numeric,date,text) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.delete_unused_lot(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.update_unused_lot(uuid,text,uuid,text,text,numeric,numeric,date,text) TO authenticated;
+-- V9: Đánh dấu container cho thuê độc lập với phiếu nhập hàng.
+ALTER TABLE public.slots ADD COLUMN IF NOT EXISTS rental_customer text;
+ALTER TABLE public.slots ADD COLUMN IF NOT EXISTS rental_start date;
+ALTER TABLE public.slots ADD COLUMN IF NOT EXISTS rental_color text;
+ALTER TABLE public.slots ADD CONSTRAINT slots_rental_consistency CHECK ((rental_customer IS NULL AND rental_start IS NULL AND rental_color IS NULL) OR (nullif(trim(rental_customer),'') IS NOT NULL AND rental_start IS NOT NULL AND rental_color ~ '^#[0-9a-fA-F]{6}$'));
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.slots TO authenticated;
+-- Giữ nguyên RLS hiện có; không cấp quyền cho anon.
